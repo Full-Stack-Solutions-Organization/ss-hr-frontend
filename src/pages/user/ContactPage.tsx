@@ -1,15 +1,12 @@
-import React from 'react';
-import AosComponent from '@/utils/AosComponent';
-import Contact from '@/components/sections/Contact';
+import React from "react";
+import Contact from "@/components/sections/Contact";
 
 const ContactPage: React.FC = () => {
-    return (
-        <div className="min-h-screen bg-white dark:bg-black">
-            <AosComponent>
-                <Contact />
-            </AosComponent>
-        </div>
-    )
-}
+  return (
+    <div className="min-h-screen bg-white dark:bg-black">
+      <Contact />
+    </div>
+  );
+};
 
-export default ContactPage
+export default ContactPage;

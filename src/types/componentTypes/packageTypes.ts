@@ -1,4 +1,3 @@
-
 export interface PackageProps {
   id: number;
   name: string;
@@ -6,10 +5,4 @@ export interface PackageProps {
   features: string[];
   price: number;
   popular?: boolean;
-  className: string;
-  thumbnail: string;
-  content: {
-    title: string;
-    description: string;
-  };
 }

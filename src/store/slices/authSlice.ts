@@ -1,7 +1,20 @@
-import type { User } from '@/types/entities/user';
-import type { AuthState } from '@/types/slice/authSliceTypes';
-import { createSlice, type PayloadAction, type ActionReducerMapBuilder } from '@reduxjs/toolkit';
-import { resendOtp, signin, signout, signup, updatePassword, verifyOtp } from '@/utils/apis/authApi';
+import type { User } from "@/types/entities/user";
+import { updateProfileImage } from "@/utils/apis/userApi";
+import type { AuthState } from "@/types/slice/authSliceTypes";
+import {
+  createSlice,
+  type PayloadAction,
+  type ActionReducerMapBuilder,
+} from "@reduxjs/toolkit";
+import {
+  resendOtp,
+  signin,
+  signout,
+  signup,
+  updatePassword,
+  verifyOtp,
+} from "@/utils/apis/authApi";
+import type { updateProfileImageResponse } from "@/types/apiTypes/authApiTypes";
 
 const initialState: AuthState = {
   user: null,
@@ -15,7 +28,7 @@ const initialState: AuthState = {
 };
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     setAuthUser: (state: AuthState, action: PayloadAction<User | null>) => {
@@ -25,7 +38,7 @@ const authSlice = createSlice({
       state.error = null;
     },
     setUser: (state: AuthState, action: PayloadAction<User>) => {
-      state.user = action.payload
+      state.user = action.payload;
     },
     startTimer: (state: AuthState, action: PayloadAction<number>) => {
       state.otpRemainingTime = action.payload;
@@ -50,13 +63,13 @@ const authSlice = createSlice({
       state.user = null;
     },
     setProfileImage: (state, action: PayloadAction<string>) => {
-            if(state.user){
-                state.user.profileImage = action.payload;
-            }
-        },
+      if (state.user) {
+        state.user.profileImage = action.payload;
+      }
+    },
     setOtpForUpdatePassword: (state, action) => {
-      state.otpForUpdatePassword = action.payload
-    }
+      state.otpForUpdatePassword = action.payload;
+    },
   },
   extraReducers: (builder: ActionReducerMapBuilder<AuthState>) => {
     builder
@@ -96,10 +109,11 @@ const authSlice = createSlice({
         state.error = null;
       });
 
-    builder.addCase(signin.pending, (state: AuthState) => {
-      state.isLoading = true;
-      state.error = null;
-    })
+    builder
+      .addCase(signin.pending, (state: AuthState) => {
+        state.isLoading = true;
+        state.error = null;
+      })
       .addCase(signin.fulfilled, (state: AuthState, action) => {
         state.isLoading = false;
         state.isAuthenticated = true;
@@ -113,10 +127,11 @@ const authSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    builder.addCase(signout.pending, (state: AuthState) => {
-      state.isLoading = true;
-      state.error = null;
-    })
+    builder
+      .addCase(signout.pending, (state: AuthState) => {
+        state.isLoading = true;
+        state.error = null;
+      })
       .addCase(signout.fulfilled, (state: AuthState) => {
         state.isLoading = false;
         state.isAuthenticated = false;
@@ -130,15 +145,17 @@ const authSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    builder.addCase(resendOtp.pending, (state: AuthState) => {
-      state.isLoading = true;
-      state.error = null;
-    })
+    builder
+      .addCase(resendOtp.pending, (state: AuthState) => {
+        state.isLoading = true;
+        state.error = null;
+      })
       .addCase(resendOtp.fulfilled, (state: AuthState, action) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.user = action.payload.user;
-        state.error = null;state.otpRemainingTime = 60;
+        state.error = null;
+        state.otpRemainingTime = 60;
         state.otpTimerIsRunning = true;
       })
       .addCase(resendOtp.rejected, (state: AuthState, action) => {
@@ -147,12 +164,13 @@ const authSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    builder.addCase(updatePassword.pending, (state: AuthState) => {
-      state.isLoading = true;
-      state.isAuthenticated = false;
-      state.user = null;
-      state.error = null;
-    })
+    builder
+      .addCase(updatePassword.pending, (state: AuthState) => {
+        state.isLoading = true;
+        state.isAuthenticated = false;
+        state.user = null;
+        state.error = null;
+      })
       .addCase(updatePassword.fulfilled, (state: AuthState) => {
         state.isLoading = false;
         state.isAuthenticated = false;
@@ -165,8 +183,34 @@ const authSlice = createSlice({
         state.user = null;
         state.error = action.payload as string;
       });
+
+    builder
+      .addCase(updateProfileImage.pending, (state) => {
+        state.profileImageUpdating = true;
+      })
+      .addCase(
+        updateProfileImage.fulfilled,
+        (state, action: PayloadAction<updateProfileImageResponse>) => {
+          state.profileImageUpdating = false;
+          if (state.user) {
+            state.user.profileImage = action.payload.data.profileImage;
+          }
+        },
+      )
+      .addCase(updateProfileImage.rejected, (state) => {
+        state.profileImageUpdating = true;
+      });
   },
 });
 
-export const { clearError, setAuthUser, startTimer, updateTimer, stopTimer, clearAuthStore, setProfileImage, setOtpForUpdatePassword } = authSlice.actions;
+export const {
+  clearError,
+  setAuthUser,
+  startTimer,
+  updateTimer,
+  stopTimer,
+  clearAuthStore,
+  setProfileImage,
+  setOtpForUpdatePassword,
+} = authSlice.actions;
 export default authSlice.reducer;

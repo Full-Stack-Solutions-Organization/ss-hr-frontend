@@ -1,10 +1,30 @@
-import { axiosInstance } from "@/components/lib/axios";
-import type { UserfetchAllJobsResponse } from "@/types/apiTypes/user";
-import { buildQueryParams, parseNewCommonResponse } from "../helpers/apiHelpers";
-import type { ApiPaginatedResponse, FetchFunctionParams } from "@/types/commonTypes";
+import { axiosInstance } from "@/lib/axios";
+import { createAsyncThunk } from "@reduxjs/toolkit";
+import type { UserfetchAllJobsResponse } from "@/types/apiTypes/userApiTypes";
+import type { updateProfileImageResponse } from "@/types/apiTypes/authApiTypes";
+import type {
+  ApiPaginatedResponse,
+  FetchFunctionParams,
+} from "@/types/commonTypes";
+import {
+  buildQueryParams,
+  parseNewCommonResponse,
+} from "@/utils/helpers/apiHelpers";
 
-export const adminFetchAllJobs = async (params?: FetchFunctionParams): Promise<ApiPaginatedResponse<UserfetchAllJobsResponse>> => {
-    const query = buildQueryParams(params);
-    const response = await axiosInstance.get(`/user/jobs${query ? `?${query}` : ''}`);
-    return parseNewCommonResponse<UserfetchAllJobsResponse>(response.data);
+export const updateProfileImage = createAsyncThunk<
+  updateProfileImageResponse,
+  FormData
+>("/auth/UpdateProfileImage", async (formData: FormData) => {
+  const response = await axiosInstance.patch("/user/prfileImage", formData);
+  return response.data;
+});
+
+export const userFetchAllJobs = async (
+  params?: FetchFunctionParams,
+): Promise<ApiPaginatedResponse<UserfetchAllJobsResponse>> => {
+  const query = buildQueryParams(params);
+  const response = await axiosInstance.get(
+    `/user/jobs${query ? `?${query}` : ""}`,
+  );
+  return parseNewCommonResponse<UserfetchAllJobsResponse>(response.data);
 };

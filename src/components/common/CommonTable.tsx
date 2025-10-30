@@ -7,15 +7,12 @@ import TableShimmer from "../shimmer/TableShimmer";
 import DataFetchingError from "./DataFetchingError";
 import { saveReportData } from "@/store/slices/adminSlice";
 import { type OnChangeFn, type PaginationState } from "@tanstack/react-table";
-import type { AdminFetchReportTableDataResponse } from "@/types/apiTypes/admin";
+import type { AdminFetchReportTableDataResponse } from "@/types/apiTypes/adminApiTypes";
 import type { CommonTableComponentProps } from "@/types/componentTypes/commonTableTypes";
 
 const CommonTable = <T,>({
   fetchApiFunction,
   queryKey,
-  heading,
-  description,
-  headingClassName,
   column,
   columnsCount,
   id,
@@ -25,31 +22,40 @@ const CommonTable = <T,>({
   showDatePicker,
   saveDataInStore,
 }: CommonTableComponentProps<T>) => {
-
   const dispatch = useDispatch<AppDispatch>();
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: pageSize,
-  })
+  });
 
-  const handlePaginationChange: OnChangeFn<PaginationState> = (updaterOrValue) => {
+  const handlePaginationChange: OnChangeFn<PaginationState> = (
+    updaterOrValue,
+  ) => {
     setPagination(updaterOrValue);
   };
 
   const { data, isLoading, isError, error } = useQuery({
-    queryFn: () => fetchApiFunction({
+    queryFn: () =>
+      fetchApiFunction({
+        id,
+        pagination: {
+          page: pagination.pageIndex + 1,
+          limit: pagination.pageSize,
+          fromDate,
+          toDate,
+        },
+      }),
+    queryKey: [
+      queryKey,
+      pagination.pageIndex,
+      pagination.pageSize,
       id,
-      pagination: {
-        page: pagination.pageIndex + 1,
-        limit: pagination.pageSize,
-        fromDate,
-        toDate
-      }
-    }),
-    queryKey: [queryKey, pagination.pageIndex, pagination.pageSize, id, fromDate, toDate],
+      fromDate,
+      toDate,
+    ],
     staleTime: 1 * 60 * 1000,
     refetchOnWindowFocus: false,
     enabled: !showDummyData,
@@ -58,36 +64,32 @@ const CommonTable = <T,>({
   const tableData =
     showDummyData && dummyData && dummyData.length > 0
       ? dummyData.slice(
-        pagination.pageIndex * pagination.pageSize,
-        (pagination.pageIndex + 1) * pagination.pageSize
-      )
-      : data?.data ?? [];
+          pagination.pageIndex * pagination.pageSize,
+          (pagination.pageIndex + 1) * pagination.pageSize,
+        )
+      : (data?.data ?? []);
 
   const totalPages =
     showDummyData && dummyData
       ? Math.ceil(dummyData.length / pagination.pageSize)
-      : data?.totalPages ?? 0;
+      : (data?.totalPages ?? 0);
 
   useEffect(() => {
     if (!saveDataInStore || !data) return;
-    dispatch(saveReportData(data?.data as Array<AdminFetchReportTableDataResponse>));
+    dispatch(
+      saveReportData(data?.data as Array<AdminFetchReportTableDataResponse>),
+    );
   }, [data, saveDataInStore, dispatch]);
 
   return (
-    <div className="p-4">
+    <div>
       <div className="flex justify-between items-center">
-        <div>
-          {heading && (
-            <h2 className={`text-2xl lg:text-3xl font-bold ${headingClassName}`}>{heading}</h2>
-          )}
-          {description && (
-            <h2 className={`text-sm font-normal`}>{description}</h2>
-          )}
-        </div>
         <div className="flex items-center space-x-4 space-y-2">
           {showDatePicker && (
             <div>
-              <h2 className={`text-lg font-normal`}>Pick specific date range</h2>
+              <h2 className={`text-lg font-normal`}>
+                Pick specific date range
+              </h2>
               <input
                 type="date"
                 value={fromDate}
@@ -109,23 +111,18 @@ const CommonTable = <T,>({
         <div className="mt-2">
           <TableShimmer columnsCount={columnsCount} />
         </div>
-      ) : tableData.length > 0 ? (
-        <DataTable
-          columns={column}
-          data={tableData}
-          pageCount={totalPages}
-          pagination={pagination}
-          onPaginationChange={handlePaginationChange}
-        />
       ) : isError && error ? (
         <DataFetchingError
           message={(error as Error).message}
           className="min-h-full"
         />
       ) : (
-        <DataFetchingError
-          message={`No ${queryKey} found in database`}
-          className="min-h-full"
+        <DataTable
+          columns={column}
+          data={tableData}
+          pageCount={totalPages}
+          pagination={pagination}
+          onPaginationChange={handlePaginationChange}
         />
       )}
     </div>

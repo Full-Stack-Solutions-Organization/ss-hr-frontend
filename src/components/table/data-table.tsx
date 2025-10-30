@@ -1,4 +1,12 @@
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
+import {
   type ColumnDef,
   type ColumnFiltersState,
   type SortingState,
@@ -11,29 +19,16 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
-
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../ui/table"
-
-import { Button } from "../ui/button"
-
-import * as React from "react"
-
-import { Input } from "../ui/input"
-
+} from "@tanstack/react-table";
+import * as React from "react";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu"
+} from "../ui/dropdown-menu";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -52,24 +47,31 @@ export function DataTable<TData, TValue>({
   pagination: controlledPagination,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
   const [globalFilter, setGlobalFilter] = React.useState("");
-  
-  const [internalPagination, setInternalPagination] = React.useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
-  
+
+  const [internalPagination, setInternalPagination] =
+    React.useState<PaginationState>({
+      pageIndex: 0,
+      pageSize: 10,
+    });
+
   const paginationState = controlledPagination || internalPagination;
-  
-  const handlePaginationChange: OnChangeFn<PaginationState> = React.useCallback((updaterOrValue) => {
-    if (onPaginationChange) {
-      onPaginationChange(updaterOrValue);
-    } else {
-      setInternalPagination(updaterOrValue);
-    }
-  }, [onPaginationChange]);
+
+  const handlePaginationChange: OnChangeFn<PaginationState> = React.useCallback(
+    (updaterOrValue) => {
+      if (onPaginationChange) {
+        onPaginationChange(updaterOrValue);
+      } else {
+        setInternalPagination(updaterOrValue);
+      }
+    },
+    [onPaginationChange],
+  );
 
   const table = useReactTable({
     data,
@@ -100,7 +102,7 @@ export function DataTable<TData, TValue>({
           placeholder="Filter values"
           value={globalFilter}
           onChange={(event) => setGlobalFilter(event.target.value)}
-          className="max-w-sm"
+          className="max-w-sm border border-gray-400 dark:border-gray-300"
         />
         <DropdownMenu>
           <div className="ml-auto">
@@ -118,7 +120,9 @@ export function DataTable<TData, TValue>({
                     key={column.id}
                     className="capitalize"
                     checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
                   >
                     {column.id}
                   </DropdownMenuCheckboxItem>
@@ -127,18 +131,24 @@ export function DataTable<TData, TValue>({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      
-      <div className="rounded-md border">
+
+      <div className="rounded-md border border-gray-400 dark:border-gray-300">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow
+                key={headerGroup.id}
+                className="border-b border-gray-400 dark:border-gray-300"
+              >
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -151,18 +161,25 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className="border-b border-gray-400 dark:border-gray-300"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No Data Found In Database.
                 </TableCell>
               </TableRow>
             )}
@@ -175,15 +192,20 @@ export function DataTable<TData, TValue>({
         <div className="text-sm text-muted-foreground">
           {pageCount ? (
             <>
-              Page {paginationState.pageIndex + 1} of {pageCount} 
-              ({table.getFilteredRowModel().rows.length} items)
+              Page {paginationState.pageIndex + 1} of {pageCount}(
+              {table.getFilteredRowModel().rows.length} items)
             </>
           ) : (
             <>
-              Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{" "}
+              Showing{" "}
+              {table.getState().pagination.pageIndex *
+                table.getState().pagination.pageSize +
+                1}{" "}
+              to{" "}
               {Math.min(
-                (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
-                table.getFilteredRowModel().rows.length
+                (table.getState().pagination.pageIndex + 1) *
+                  table.getState().pagination.pageSize,
+                table.getFilteredRowModel().rows.length,
               )}{" "}
               of {table.getFilteredRowModel().rows.length} entries
             </>
